@@ -2,6 +2,8 @@ module PoissonBinomialTest
 
 export PBDist, Probability, expand, pbtest
 
+export complement, log, logit
+
 const ALMOST = 0.999
 
 struct Probability{T <: AbstractFloat}
@@ -30,6 +32,19 @@ end
 Base.float(p::Probability) = p.ref ? 1 - p.off : p.off
 Base.isapprox(a::Probability, b::Probability) = 
 	isapprox(1-(1-(float(a))), 1-(1-(float(b))))
+Base.length(p::Probability) = 1
+Base.iterate(p::Probability) = (p, nothing)
+Base.iterate(p::Probability, nothing) = nothing
+
+# Base.:+(p::Probability, x::Number) = p.ref ? x + 1 - p.off : x + p.off
+# Base.:+(x::Number, p::Probability) = p.ref ? x + 1 - p.off : x + p.off
+# Base.:-(p::Probability, x::Number) = p.ref ? 1 - x - p.off : p.off - x
+# Base.:-(x::Number, p::Probability) = p.ref ? x - 1 + p.off : x - p.off
+
+complement(p::Probability) = Probability(p.off, !p.ref)
+Base.log(p::Probability) = p.ref ? log1p(-p.off) : log(p.off)
+logit(p::AbstractFloat) = log(p) - log(1 - p)
+logit(p::Probability) = log(p) - log(complement(p))
 
 struct PBDist{T <: AbstractFloat}
 	n::Int
