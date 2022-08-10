@@ -69,7 +69,7 @@ function expand(dist::PBDist{T}) where {T <: AbstractFloat}
 	slots
 end
 
-function pbtest(dist::PBDist{T}, x::Int) where {T <: AbstractFloat}
+function pbtest(dist::PBDist{<:AbstractFloat}, x::Int)
 	@assert 0 <= x <= dist.n
 	slots = expand(dist)
 	left  = sum(slots[1:x])
@@ -79,7 +79,15 @@ function pbtest(dist::PBDist{T}, x::Int) where {T <: AbstractFloat}
 	p_right = right < 0.5 ? Probability(right) : Probability(mid + left, true)
 	p_left, p_right
 end
-pbtest(pp::Vector{T}, x::Int) where {T <: AbstractFloat} = 
-	pbtest(PBDist(pp), x)
+pbtest(pp::Vector{<:AbstractFloat}, x::Int) = pbtest(PBDist(pp), x)
+
+function quantile(dist::PBDist{<:AbstractFloat}, x::Int)
+	@assert 0 <= x <= dist.n
+	slots = expand(dist)
+	mleft  = sum(slots[1:x]) + slots[x+1] / 2
+	mright = sum(reverse(slots[x+2:end])) + slots[x+1] / 2
+	mleft < 0.5 ? Probability(mleft) : Probability(mright, true)
+end
+quantile(pp::Vector{<:AbstractFloat}, x::Int) = quantile(PBDist(pp), x)
 
 end # module
